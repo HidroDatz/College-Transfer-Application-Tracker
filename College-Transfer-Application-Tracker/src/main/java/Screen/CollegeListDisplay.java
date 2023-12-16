@@ -5,9 +5,13 @@ import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,20 +20,40 @@ import javafx.stage.Stage;
 
 public class CollegeListDisplay extends Application {
 
- 
+    final static ArrayList<College> colleges = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("College List Display");
+        colleges.add(new College("Harvard University", "Cambridge, MA", "Ivy League institution known for excellence in education and research.", "/images/harvard_image.jpg"));
+        colleges.add(new College("Massachusetts Institute of Technology (MIT)", "Cambridge, MA", "Renowned for its focus on science, engineering, and technology.", "/images/mit_image.jpg"));
+        colleges.add(new College("Stanford University", "Stanford, CA", "Leading research university with a strong emphasis on innovation.", "/images/stanford_image.jpg"));
+        colleges.add(new College("Yale University", "New Haven, CT", "Ivy League university known for its distinguished faculty and rich history.", "/images/yale_image.jpg"));
+        colleges.add(new College("University of California, Los Angeles (UCLA)", "Los Angeles, CA", "A public research university with a diverse and vibrant campus.", "/images/ucla_image.jpg"));
+        Scene scene = listCollege(primaryStage);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
 
+    private void searchCollege(String searchTerm, TableView<College> tableView) {
+        ObservableList<College> filteredColleges = FXCollections.observableArrayList();
+
+        for (College college : colleges) {
+            if (college.getName().toLowerCase().contains(searchTerm.toLowerCase())) {
+                filteredColleges.add(college);
+            }
+        }
+
+        tableView.setItems(filteredColleges);
+    }
+
+    private void clearSearch(TableView<College> tableView, ObservableList<College> observableColleges) {
+        tableView.setItems(observableColleges);
+    }
+
+    private Scene listCollege(Stage primaryStage) {
+        primaryStage.setTitle("College List Display");
         TableView<College> tableView = new TableView<>();
-        ObservableList<College> colleges = FXCollections.observableArrayList(
-                new College("Harvard University", "Cambridge, MA", "Ivy League institution known for excellence in education and research.", "/images/harvard_image.jpg"),
-                new College("Massachusetts Institute of Technology (MIT)", "Cambridge, MA", "Renowned for its focus on science, engineering, and technology.", "/images/mit_image.jpg"),
-                new College("Stanford University", "Stanford, CA", "Leading research university with a strong emphasis on innovation.", "/images/stanford_image.jpg"),
-                new College("Yale University", "New Haven, CT", "Ivy League university known for its distinguished faculty and rich history.", "/images/yale_image.jpg"),
-                new College("University of California, Los Angeles (UCLA)", "Los Angeles, CA", "A public research university with a diverse and vibrant campus.", "/images/ucla_image.jpg")
-        );
+        ObservableList<College> observableColleges = FXCollections.observableArrayList(colleges);
 
         TableColumn<College, Integer> numberColumn = new TableColumn<>("No.");
         numberColumn.setCellValueFactory(cellData -> {
@@ -40,40 +64,45 @@ public class CollegeListDisplay extends Application {
         TableColumn<College, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn<College, String> imageColumn = new TableColumn<>("Image");
-        imageColumn.setCellValueFactory(new PropertyValueFactory<>("imagePath"));
-        imageColumn.setCellFactory(param -> new javafx.scene.control.TableCell<>() {
-            private final ImageView imageView = new ImageView();
-
-            @Override
-            protected void updateItem(String imagePath, boolean empty) {
-                super.updateItem(imagePath, empty);
-                if (empty || imagePath == null) {
-                    setGraphic(null);
-                } else {
-                    Image image = new Image(getClass().getClassLoader().getResourceAsStream(imagePath), 50, 50, true, true);
-                    imageView.setImage(image);
-                    setGraphic(imageView);
+        tableView.getColumns().addAll(numberColumn, nameColumn);
+        tableView.setItems(observableColleges);
+        tableView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) { // Single click
+                College selectedCollege = tableView.getSelectionModel().getSelectedItem();
+                if (selectedCollege != null) {
+                    showCollegeDetails(selectedCollege, primaryStage);
                 }
             }
         });
-
-        tableView.getColumns().addAll(numberColumn, nameColumn, imageColumn);
-        tableView.setItems(colleges);
-
-        VBox vbox = new VBox(tableView);
+        TextField searchField = new TextField();
+        Button searchButton = new Button("Search");
+        searchButton.setOnAction(e -> searchCollege(searchField.getText(), tableView));
+        Button clearButton = new Button("Clear Search");
+        clearButton.setOnAction(e -> clearSearch(tableView, observableColleges));
+        VBox vbox = new VBox(searchField, searchButton, clearButton, tableView);
         Scene scene = new Scene(vbox, 600, 400);
-        primaryStage.setScene(scene);
-
-        primaryStage.show();
+        return scene;
     }
 
-    private static College searchCollegeByName(String name, ArrayList<College> colleges) {
-        for (College college : colleges) {
-            if (college.getName().equalsIgnoreCase(name)) {
-                return college;
-            }
-        }
-        return null;
+    private void showCollegeDetails(College college, Stage primaryStage) {
+        VBox detailsLayout = new VBox(10);
+        detailsLayout.setAlignment(Pos.CENTER);
+
+        Label nameLabel = new Label("Name: " + college.getName());
+        Label addressLabel = new Label("Address: " + college.getAddress());
+        Label descriptionLabel = new Label("Description: " + college.getDescription());
+
+        // Load and display the full-size image
+        Image smallImage = new Image(getClass().getResourceAsStream(college.getImage()), 200, 200, true, true);
+        ImageView imageView = new ImageView(smallImage);
+
+        detailsLayout.getChildren().addAll(nameLabel, addressLabel, descriptionLabel, imageView);
+        Button backButton = new Button("Back");
+        backButton.setOnAction(event -> {
+            primaryStage.setScene(listCollege(primaryStage));
+        });
+        detailsLayout.getChildren().add(backButton);
+        Scene detailsScene = new Scene(detailsLayout, primaryStage.getWidth(), primaryStage.getHeight());
+        primaryStage.setScene(detailsScene);
     }
 }
