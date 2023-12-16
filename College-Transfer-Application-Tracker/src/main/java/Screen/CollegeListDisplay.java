@@ -97,6 +97,13 @@ public class CollegeListDisplay extends Application {
         ImageView imageView = new ImageView(smallImage);
 
         detailsLayout.getChildren().addAll(nameLabel, addressLabel, descriptionLabel, imageView);
+        Button applyTransferButton = new Button("Apply Transfer Form");
+        CollegeTransferApplicationForm newForm = new CollegeTransferApplicationForm();
+        applyTransferButton.setOnAction(event -> {
+            Scene transferFormScene = newForm.Form(primaryStage, college);
+            primaryStage.setScene(transferFormScene);
+        });
+        detailsLayout.getChildren().add(applyTransferButton);
         Button backButton = new Button("Back");
         backButton.setOnAction(event -> {
             primaryStage.setScene(listCollege(primaryStage));

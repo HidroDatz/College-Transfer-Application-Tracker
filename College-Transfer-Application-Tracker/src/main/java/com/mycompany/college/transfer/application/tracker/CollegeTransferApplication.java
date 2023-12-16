@@ -124,7 +124,7 @@ public class CollegeTransferApplication {
     }
 
     public boolean isIsEssayWritten() {
-        return isEssayWritten;
+            return isEssayWritten;
     }
 
     public void setIsEssayWritten(boolean isEssayWritten) {
@@ -139,5 +139,9 @@ public class CollegeTransferApplication {
         this.areTranscriptsSubmitted = areTranscriptsSubmitted;
     }
 
-    
+    @Override
+    public String toString() {
+        return"{collegeName=" + collegeName + ", address=" + address + ", applicationDate=" + applicationDate + ", cost=" + cost + ", applicationPlatform=" + applicationPlatform + ", recommenderNames=" + recommenderNames + ", emailAddress=" + emailAddress + ", recommendationRequestedDate=" + recommendationRequestedDate + ", recommendationRequiredDate=" + recommendationRequiredDate + ", expectedAcceptanceLetterDate=" + expectedAcceptanceLetterDate + ", isEssayWritten=" + isEssayWritten + ", areTranscriptsSubmitted=" + areTranscriptsSubmitted + '}';
+    }
+
 }

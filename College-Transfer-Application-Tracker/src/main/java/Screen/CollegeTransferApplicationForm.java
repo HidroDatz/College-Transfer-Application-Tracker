@@ -4,9 +4,17 @@
  */
 package Screen;
 
+import com.mycompany.college.transfer.application.tracker.College;
 import com.mycompany.college.transfer.application.tracker.CollegeTransferApplication;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -28,7 +36,7 @@ import javafx.scene.control.ButtonType;
  */
 public class CollegeTransferApplicationForm {
 
-    public Scene Form(Stage primaryStage) {
+    public Scene Form(Stage primaryStage, College college) {
         primaryStage.setTitle("College Transfer Application Form");
 
         GridPane gridPane = new GridPane();
@@ -38,12 +46,12 @@ public class CollegeTransferApplicationForm {
 
         // Add form elements
         TextField collegeNameField = new TextField();
-        collegeNameField.setPromptText("College Name");
+        collegeNameField.setText(college.getName());
         gridPane.add(new Label("College Name:"), 0, 0);
         gridPane.add(collegeNameField, 1, 0);
 
         TextField addressField = new TextField();
-        addressField.setPromptText("College Address");
+        addressField.setText(college.getAddress());
         gridPane.add(new Label("College Address:"), 0, 1);
         gridPane.add(addressField, 1, 1);
 
@@ -93,6 +101,14 @@ public class CollegeTransferApplicationForm {
         Button submitButton = new Button("Submit Application");
         submitButton.setOnAction(e -> {
             // Retrieve values from the form
+            if (collegeNameField.getText().isEmpty() || addressField.getText().isEmpty() || applicationDatePicker.getValue() == null
+                    || costField.getText().isEmpty() || platformField.getText().isEmpty()
+                    || recommendersField.getText().isEmpty() || emailAddressField.getText().isEmpty()
+                    || recommendationRequestedDatePicker.getValue() == null || recommendationRequiredDatePicker.getValue() == null
+                    || acceptanceLetterDatePicker.getValue() == null) {
+                showMissingFieldAlert();
+                return; // Stop further processing
+            }
             String collegeName = collegeNameField.getText();
             String address = addressField.getText();
             Date applicationDate = convertLocalDateToDate(applicationDatePicker.getValue());
@@ -113,17 +129,53 @@ public class CollegeTransferApplicationForm {
                     recommenderNames, emailAddress, recommendationRequestedDate,
                     recommendationRequiredDate, expectedAcceptanceLetterDate,
                     isEssayWritten, areTranscriptsSubmitted);
-
-            // Perform further actions with the CollegeTransferApplication object
-            // (e.g., send data to a database, process the application, etc.)
-            // Show a confirmation dialog
+            saveApplicationToFile(application);
             showConfirmationDialog(application);
         });
-
+        List<CollegeTransferApplication> listApplication = readApplicationsFromFile();
+        for (CollegeTransferApplication collegeTransferApplication : listApplication) {
+            System.out.println(collegeTransferApplication.toString());
+        }
         gridPane.add(submitButton, 1, 11);
 
         Scene scene = new Scene(gridPane, 600, 500);
         return scene;
+    }
+    public void saveApplicationToFile(CollegeTransferApplication application) {
+        try {
+            // Check if the file exists, create a new one if not
+            File file = new File("ApplicationForm.txt");
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            // Write the application object to the file using Object Serialization
+            try ( ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+                oos.writeObject(application);
+                oos.flush();
+                oos.close();
+                System.out.println("Application saved successfully to ApplicationForm.txt");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error saving application to file");
+        }
+    }
+    public static List<CollegeTransferApplication> readApplicationsFromFile() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("ApplicationForm.txt"))) {
+            Object obj = ois.readObject();
+
+            if (obj instanceof List) {
+                return (List<CollegeTransferApplication>) obj;
+            } else {
+                System.err.println("Error: Unexpected object type found in file");
+                return new ArrayList<>();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error reading applications from file");
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
     private Date convertLocalDateToDate(LocalDate localDate) {
@@ -139,6 +191,13 @@ public class CollegeTransferApplicationForm {
         ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(okButton);
 
+        alert.showAndWait();
+    }
+    
+    private void showMissingFieldAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Missing Fields");
+        alert.setHeaderText("Please fill in all required fields.");
         alert.showAndWait();
     }
 }
