@@ -9,20 +9,28 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class CollegeListDisplay extends Application {
 
+    /**
+     * List of colleges displayed in the TableView.
+     */
     final static ArrayList<College> colleges = new ArrayList<>();
 
+    /**
+     * The main entry point for the JavaFX application.
+     *
+     * @param primaryStage The primary stage for the application.
+     */
     @Override
     public void start(Stage primaryStage) {
         colleges.add(new College("Harvard University", "Cambridge, MA", "Ivy League institution known for excellence in education and research.", "/images/harvard_image.jpg"));
@@ -35,6 +43,13 @@ public class CollegeListDisplay extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Handles the search functionality by filtering the colleges based on the
+     * search term.
+     *
+     * @param searchTerm The term to search for in college names.
+     * @param tableView The TableView displaying the colleges.
+     */
     private void searchCollege(String searchTerm, TableView<College> tableView) {
         ObservableList<College> filteredColleges = FXCollections.observableArrayList();
 
@@ -47,10 +62,22 @@ public class CollegeListDisplay extends Application {
         tableView.setItems(filteredColleges);
     }
 
+    /**
+     * Clears the search and restores the original list of colleges.
+     *
+     * @param tableView The TableView displaying the colleges.
+     * @param observableColleges The original list of colleges.
+     */
     private void clearSearch(TableView<College> tableView, ObservableList<College> observableColleges) {
         tableView.setItems(observableColleges);
     }
 
+    /**
+     * Creates the main scene displaying the list of colleges in a TableView.
+     *
+     * @param primaryStage The primary stage for the application.
+     * @return The Scene object for the college list display.
+     */
     public Scene listCollege(Stage primaryStage) {
         primaryStage.setTitle("College List Display");
         TableView<College> tableView = new TableView<>();
@@ -64,22 +91,18 @@ public class CollegeListDisplay extends Application {
 
         TableColumn<College, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        // Button column to show transfer applications
-        TableColumn<College, Void> transferApplicationsColumn = new TableColumn<>("Transfer Applications");
-
         Button showTransferApplicationsButton = new Button("Show Transfer Applications");
 
         showTransferApplicationsButton.setOnAction(event -> {
-            TransferApplicationList transferForm = new TransferApplicationList();
+            TransferApplicationListView transferForm = new TransferApplicationListView();
             Scene transferListScene = transferForm.TransferListDisplay(primaryStage);
             primaryStage.setScene(transferListScene);
         });
-
-        tableView.getColumns().addAll(numberColumn, nameColumn, transferApplicationsColumn);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableView.getColumns().addAll(numberColumn, nameColumn);
         tableView.setItems(observableColleges);
         tableView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 1) { // Single click
+            if (event.getClickCount() == 1) {
                 College selectedCollege = tableView.getSelectionModel().getSelectedItem();
                 if (selectedCollege != null) {
                     showCollegeDetails(selectedCollege, primaryStage);
@@ -92,12 +115,22 @@ public class CollegeListDisplay extends Application {
         searchButton.setOnAction(e -> searchCollege(searchField.getText(), tableView));
         Button clearButton = new Button("Clear Search");
         clearButton.setOnAction(e -> clearSearch(tableView, observableColleges));
-
-        VBox vbox = new VBox(searchField, searchButton, clearButton, showTransferApplicationsButton, tableView);
+        HBox buttonsBox = new HBox(10, searchButton, clearButton, showTransferApplicationsButton);
+        buttonsBox.setAlignment(Pos.CENTER);
+        VBox vbox = new VBox(searchField, buttonsBox, tableView);
+        vbox.setAlignment(Pos.CENTER);
         Scene scene = new Scene(vbox, 600, 400);
+
         return scene;
     }
 
+    /**
+     * Displays the details of a selected college and provides the option to
+     * apply for a transfer form.
+     *
+     * @param college The selected college.
+     * @param primaryStage The primary stage for the application.
+     */
     public void showCollegeDetails(College college, Stage primaryStage) {
         VBox detailsLayout = new VBox(10);
         detailsLayout.setAlignment(Pos.CENTER);
@@ -106,13 +139,12 @@ public class CollegeListDisplay extends Application {
         Label addressLabel = new Label("Address: " + college.getAddress());
         Label descriptionLabel = new Label("Description: " + college.getDescription());
 
-        // Load and display the full-size image
         Image smallImage = new Image(getClass().getResourceAsStream(college.getImage()), 200, 200, true, true);
         ImageView imageView = new ImageView(smallImage);
 
         detailsLayout.getChildren().addAll(nameLabel, addressLabel, descriptionLabel, imageView);
         Button applyTransferButton = new Button("Apply Transfer Form");
-        CollegeTransferApplicationForm newForm = new CollegeTransferApplicationForm();
+        TransferApplicationForm newForm = new TransferApplicationForm();
         applyTransferButton.setOnAction(event -> {
             Scene transferFormScene = newForm.Form(primaryStage, college);
             primaryStage.setScene(transferFormScene);

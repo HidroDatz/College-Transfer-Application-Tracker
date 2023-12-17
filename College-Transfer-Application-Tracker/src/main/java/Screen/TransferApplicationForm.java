@@ -1,19 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Screen;
 
 import com.mycompany.college.transfer.application.tracker.College;
 import com.mycompany.college.transfer.application.tracker.CollegeTransferApplication;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -31,11 +21,20 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 
 /**
- *
- * @author ASUS
+ * This class represents the transfer application form for a college. It extends
+ * the AbstractFileIO class to inherit file input and output functionality.
+ * Users can fill out the form with information about their application, and the
+ * form can be submitted for processing.
  */
-public class CollegeTransferApplicationForm {
+public class TransferApplicationForm extends AbstractFileIO {
 
+    /**
+     * Creates and displays the transfer application form scene.
+     *
+     * @param primaryStage The primary stage for the application.
+     * @param college The college for which the application is being submitted.
+     * @return The Scene object for the transfer application form.
+     */
     public Scene Form(Stage primaryStage, College college) {
         primaryStage.setTitle("College Transfer Application Form");
 
@@ -44,7 +43,6 @@ public class CollegeTransferApplicationForm {
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
-        // Add form elements
         TextField collegeNameField = new TextField();
         collegeNameField.setText(college.getName());
         gridPane.add(new Label("College Name:"), 0, 0);
@@ -69,7 +67,6 @@ public class CollegeTransferApplicationForm {
         gridPane.add(new Label("Application Platform:"), 0, 4);
         gridPane.add(platformField, 1, 4);
 
-        // Recommender names as a comma-separated list
         TextField recommendersField = new TextField();
         recommendersField.setPromptText("Recommender Names (comma-separated)");
         gridPane.add(new Label("Recommender Names:"), 0, 5);
@@ -100,20 +97,18 @@ public class CollegeTransferApplicationForm {
 
         Button submitButton = new Button("Submit Application");
         submitButton.setOnAction(e -> {
-            // Retrieve values from the form
             if (collegeNameField.getText().isEmpty() || addressField.getText().isEmpty() || applicationDatePicker.getValue() == null
                     || costField.getText().isEmpty() || platformField.getText().isEmpty()
                     || recommendersField.getText().isEmpty() || emailAddressField.getText().isEmpty()
                     || recommendationRequestedDatePicker.getValue() == null || recommendationRequiredDatePicker.getValue() == null
                     || acceptanceLetterDatePicker.getValue() == null) {
                 showAlert("Missing values", "Please fill all fields in form.");
-                return; // Stop further processing
+                return;
             }
             if (!isValidCost(costField.getText())
                     || !isValidEmail(emailAddressField.getText())) {
-                // Display an alert if validation fails
                 showAlert("Invalid input", "Please check your input and try again.");
-                return; // Do not proceed with saving
+                return;
             }
             String collegeName = collegeNameField.getText();
             String address = addressField.getText();
@@ -129,7 +124,6 @@ public class CollegeTransferApplicationForm {
             boolean isEssayWritten = essayWrittenCheckBox.isSelected();
             boolean areTranscriptsSubmitted = transcriptsSubmittedCheckBox.isSelected();
 
-            // Create CollegeTransferApplication object with the retrieved values
             CollegeTransferApplication application = new CollegeTransferApplication(
                     collegeName, address, applicationDate, cost, applicationPlatform,
                     recommenderNames, emailAddress, recommendationRequestedDate,
@@ -149,8 +143,13 @@ public class CollegeTransferApplicationForm {
         return scene;
     }
 
+    /**
+     * Validates the input cost to ensure it is a non-negative double value.
+     *
+     * @param inputCost The input cost to be validated.
+     * @return True if the input is a non-negative double, false otherwise.
+     */
     private boolean isValidCost(String inputCost) {
-        // Add your cost validation logic here
         try {
             double cost = Double.parseDouble(inputCost);
             return cost >= 0;
@@ -159,37 +158,32 @@ public class CollegeTransferApplicationForm {
         }
     }
 
+    /**
+     * Validates the input email using a regular expression.
+     *
+     * @param email The email to be validated.
+     * @return True if the email is valid, false otherwise.
+     */
     private boolean isValidEmail(String email) {
-        // Add your email validation logic here
         return email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
     }
 
-    private void saveObjectToFile(CollegeTransferApplication object) {
-        List<CollegeTransferApplication> objects = loadObjectsFromFile("applications.ser");
-        objects.add(object);
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("applications.ser"))) {
-            oos.writeObject(objects);
-            System.out.println("Object saved successfully to " + "applications.ser");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public  List<CollegeTransferApplication> loadObjectsFromFile(String fileName) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
-            return (List<CollegeTransferApplication>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-    }
-
+    /**
+     * Converts a LocalDate object to a Date object.
+     *
+     * @param localDate The LocalDate object to be converted.
+     * @return The corresponding Date object, or null if the input is null.
+     */
     private Date convertLocalDateToDate(LocalDate localDate) {
         return localDate != null ? Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
     }
 
+    /**
+     * Displays a confirmation dialog for a submitted application.
+     *
+     * @param application The CollegeTransferApplication for which the
+     * confirmation is displayed.
+     */
     private void showConfirmationDialog(CollegeTransferApplication application) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Application Submitted");
@@ -202,6 +196,12 @@ public class CollegeTransferApplicationForm {
         alert.showAndWait();
     }
 
+    /**
+     * Displays an error dialog with the specified title and content.
+     *
+     * @param title The title of the error dialog.
+     * @param content The content of the error dialog.
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle(title);

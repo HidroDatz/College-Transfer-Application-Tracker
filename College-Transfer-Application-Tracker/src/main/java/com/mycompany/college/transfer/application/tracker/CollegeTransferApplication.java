@@ -1,13 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.mycompany.college.transfer.application.tracker;
 
-/**
- *
- * @author ASUS
- */
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
