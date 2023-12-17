@@ -6,7 +6,6 @@ package Screen;
 
 import com.mycompany.college.transfer.application.tracker.College;
 import com.mycompany.college.transfer.application.tracker.CollegeTransferApplication;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +26,7 @@ import javafx.stage.Stage;
 import java.util.Date;
 import java.util.List;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 
@@ -106,8 +106,14 @@ public class CollegeTransferApplicationForm {
                     || recommendersField.getText().isEmpty() || emailAddressField.getText().isEmpty()
                     || recommendationRequestedDatePicker.getValue() == null || recommendationRequiredDatePicker.getValue() == null
                     || acceptanceLetterDatePicker.getValue() == null) {
-                showMissingFieldAlert();
+                showAlert("Missing values", "Please fill all fields in form.");
                 return; // Stop further processing
+            }
+            if (!isValidCost(costField.getText())
+                    || !isValidEmail(emailAddressField.getText())) {
+                // Display an alert if validation fails
+                showAlert("Invalid input", "Please check your input and try again.");
+                return; // Do not proceed with saving
             }
             String collegeName = collegeNameField.getText();
             String address = addressField.getText();
@@ -129,53 +135,55 @@ public class CollegeTransferApplicationForm {
                     recommenderNames, emailAddress, recommendationRequestedDate,
                     recommendationRequiredDate, expectedAcceptanceLetterDate,
                     isEssayWritten, areTranscriptsSubmitted);
-            saveApplicationToFile(application);
+            saveObjectToFile(application);
             showConfirmationDialog(application);
         });
-        List<CollegeTransferApplication> listApplication = readApplicationsFromFile();
-        for (CollegeTransferApplication collegeTransferApplication : listApplication) {
-            System.out.println(collegeTransferApplication.toString());
-        }
+        CollegeListDisplay listDisplay = new CollegeListDisplay();
+        Button backButton = new Button("Home");
+        backButton.setOnAction(event -> {
+            primaryStage.setScene(listDisplay.listCollege(primaryStage));
+        });
         gridPane.add(submitButton, 1, 11);
-
+        gridPane.add(backButton, 0, 11);
         Scene scene = new Scene(gridPane, 600, 500);
         return scene;
     }
-    public void saveApplicationToFile(CollegeTransferApplication application) {
-        try {
-            // Check if the file exists, create a new one if not
-            File file = new File("ApplicationForm.txt");
-            if (!file.exists()) {
-                file.createNewFile();
-            }
 
-            // Write the application object to the file using Object Serialization
-            try ( ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-                oos.writeObject(application);
-                oos.flush();
-                oos.close();
-                System.out.println("Application saved successfully to ApplicationForm.txt");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Error saving application to file");
+    private boolean isValidCost(String inputCost) {
+        // Add your cost validation logic here
+        try {
+            double cost = Double.parseDouble(inputCost);
+            return cost >= 0;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
-    public static List<CollegeTransferApplication> readApplicationsFromFile() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("ApplicationForm.txt"))) {
-            Object obj = ois.readObject();
 
-            if (obj instanceof List) {
-                return (List<CollegeTransferApplication>) obj;
-            } else {
-                System.err.println("Error: Unexpected object type found in file");
-                return new ArrayList<>();
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Error reading applications from file");
+    private boolean isValidEmail(String email) {
+        // Add your email validation logic here
+        return email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
+    }
+
+    private void saveObjectToFile(CollegeTransferApplication object) {
+        List<CollegeTransferApplication> objects = loadObjectsFromFile("applications.ser");
+        objects.add(object);
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("applications.ser"))) {
+            oos.writeObject(objects);
+            System.out.println("Object saved successfully to " + "applications.ser");
+        } catch (IOException e) {
             e.printStackTrace();
-            return new ArrayList<>();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public  List<CollegeTransferApplication> loadObjectsFromFile(String fileName) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            return (List<CollegeTransferApplication>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
     }
 
     private Date convertLocalDateToDate(LocalDate localDate) {
@@ -193,11 +201,12 @@ public class CollegeTransferApplicationForm {
 
         alert.showAndWait();
     }
-    
-    private void showMissingFieldAlert() {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Missing Fields");
-        alert.setHeaderText("Please fill in all required fields.");
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }

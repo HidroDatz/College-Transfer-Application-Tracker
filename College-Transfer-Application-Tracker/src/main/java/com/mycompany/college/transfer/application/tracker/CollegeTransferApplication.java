@@ -8,10 +8,12 @@ package com.mycompany.college.transfer.application.tracker;
  *
  * @author ASUS
  */
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class CollegeTransferApplication {
+public class CollegeTransferApplication implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String collegeName;
     private String address;
     private Date applicationDate;
@@ -141,7 +143,7 @@ public class CollegeTransferApplication {
 
     @Override
     public String toString() {
-        return"{collegeName=" + collegeName + ", address=" + address + ", applicationDate=" + applicationDate + ", cost=" + cost + ", applicationPlatform=" + applicationPlatform + ", recommenderNames=" + recommenderNames + ", emailAddress=" + emailAddress + ", recommendationRequestedDate=" + recommendationRequestedDate + ", recommendationRequiredDate=" + recommendationRequiredDate + ", expectedAcceptanceLetterDate=" + expectedAcceptanceLetterDate + ", isEssayWritten=" + isEssayWritten + ", areTranscriptsSubmitted=" + areTranscriptsSubmitted + '}';
+        return "CollegeTransferApplication{" + "collegeName=" + collegeName + ", address=" + address + ", applicationDate=" + applicationDate + ", cost=" + cost + ", applicationPlatform=" + applicationPlatform + ", recommenderNames=" + recommenderNames + ", emailAddress=" + emailAddress + ", recommendationRequestedDate=" + recommendationRequestedDate + ", recommendationRequiredDate=" + recommendationRequiredDate + ", expectedAcceptanceLetterDate=" + expectedAcceptanceLetterDate + ", isEssayWritten=" + isEssayWritten + ", areTranscriptsSubmitted=" + areTranscriptsSubmitted + '}';
     }
 
 }

@@ -9,6 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -50,7 +51,7 @@ public class CollegeListDisplay extends Application {
         tableView.setItems(observableColleges);
     }
 
-    private Scene listCollege(Stage primaryStage) {
+    public Scene listCollege(Stage primaryStage) {
         primaryStage.setTitle("College List Display");
         TableView<College> tableView = new TableView<>();
         ObservableList<College> observableColleges = FXCollections.observableArrayList(colleges);
@@ -64,7 +65,18 @@ public class CollegeListDisplay extends Application {
         TableColumn<College, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        tableView.getColumns().addAll(numberColumn, nameColumn);
+        // Button column to show transfer applications
+        TableColumn<College, Void> transferApplicationsColumn = new TableColumn<>("Transfer Applications");
+
+        Button showTransferApplicationsButton = new Button("Show Transfer Applications");
+
+        showTransferApplicationsButton.setOnAction(event -> {
+            TransferApplicationList transferForm = new TransferApplicationList();
+            Scene transferListScene = transferForm.TransferListDisplay(primaryStage);
+            primaryStage.setScene(transferListScene);
+        });
+
+        tableView.getColumns().addAll(numberColumn, nameColumn, transferApplicationsColumn);
         tableView.setItems(observableColleges);
         tableView.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) { // Single click
@@ -74,17 +86,19 @@ public class CollegeListDisplay extends Application {
                 }
             }
         });
+
         TextField searchField = new TextField();
         Button searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchCollege(searchField.getText(), tableView));
         Button clearButton = new Button("Clear Search");
         clearButton.setOnAction(e -> clearSearch(tableView, observableColleges));
-        VBox vbox = new VBox(searchField, searchButton, clearButton, tableView);
+
+        VBox vbox = new VBox(searchField, searchButton, clearButton, showTransferApplicationsButton, tableView);
         Scene scene = new Scene(vbox, 600, 400);
         return scene;
     }
 
-    private void showCollegeDetails(College college, Stage primaryStage) {
+    public void showCollegeDetails(College college, Stage primaryStage) {
         VBox detailsLayout = new VBox(10);
         detailsLayout.setAlignment(Pos.CENTER);
 
